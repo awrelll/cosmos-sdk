@@ -1,7 +1,10 @@
 package tests
 
 import (
+	"bufio"
+	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -27,12 +30,29 @@ func getCmd(t *testing.T, command string) *exec.Cmd {
 // Execute the command, return standard output and error, try a few times if requested
 func ExecuteT(t *testing.T, command string) (out string) {
 	cmd := getCmd(t, command)
-	bz, err := cmd.CombinedOutput()
+	//bz, err := cmd.CombinedOutput()
+	//require.NoError(t, err, string(bz))
+
+	cmdReader, err := cmd.StdoutPipe()
 	if err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
+		os.Exit(1)
 	}
-	require.NoError(t, err, string(bz))
-	out = strings.Trim(string(bz), "\n") //trim any new lines
+
+	scanner := bufio.NewScanner(cmdReader)
+	go func() {
+		for scanner.Scan() {
+			txt := scanner.Text()
+			out += scanner.Text() + "\n"
+			fmt.Printf("debug out | %s\n", txt)
+		}
+	}()
+	err = cmd.Start()
+	require.NoError(t, err, "Error starting Cmd")
+	err = cmd.Wait()
+	require.NoError(t, err, "Error waiting for Cmd")
+
+	out = strings.Trim(out, "\n") //trim any new lines
 	return out
 }
 

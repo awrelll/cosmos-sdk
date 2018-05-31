@@ -21,6 +21,7 @@ import (
 )
 
 func TestGaiaCLISend(t *testing.T) {
+	fmt.Println("wackydebugoutput TestGaiaCLISend 0")
 	tests.ExecuteT(t, "gaiad unsafe_reset_all")
 	pass := "1234567890"
 	executeWrite(t, "gaiacli keys delete foo", pass)
@@ -41,12 +42,16 @@ func TestGaiaCLISend(t *testing.T) {
 
 	fooBech, err := sdk.Bech32CosmosifyAcc(fooAddr)
 	if err != nil {
+		fmt.Println("wackydebugoutput TestGaiaCLISend 1")
 		t.Error(err)
 	}
+	fmt.Println("wackydebugoutput TestGaiaCLISend 2")
 	barBech, err := sdk.Bech32CosmosifyAcc(barAddr)
 	if err != nil {
+		fmt.Println("wackydebugoutput TestGaiaCLISend 3")
 		t.Error(err)
 	}
+	fmt.Println("wackydebugoutput TestGaiaCLISend 4")
 	// Wait for RPC server to start.
 	time.Sleep(time.Second * 5)
 	fooAcc := executeGetAccount(t, fmt.Sprintf("gaiacli account %v %v", fooBech, flags))
@@ -54,6 +59,7 @@ func TestGaiaCLISend(t *testing.T) {
 
 	executeWrite(t, fmt.Sprintf("gaiacli send %v --amount=10steak --to=%v --name=foo", flags, barBech), pass)
 	time.Sleep(time.Second * 3) // waiting for some blocks to pass
+	fmt.Println("wackydebugoutput TestGaiaCLISend 5")
 
 	barAcc := executeGetAccount(t, fmt.Sprintf("gaiacli account %v %v", barBech, flags))
 	assert.Equal(t, int64(10), barAcc.GetCoins().AmountOf("steak"))
@@ -61,12 +67,17 @@ func TestGaiaCLISend(t *testing.T) {
 	assert.Equal(t, int64(40), fooAcc.GetCoins().AmountOf("steak"))
 	// test autosequencing
 	executeWrite(t, fmt.Sprintf("gaiacli send %v --amount=10steak --to=%v --name=foo --sequence=1", flags, barBech), pass)
-	// time.Sleep(time.Second * 3) // waiting for some blocks to pass
-	//
-	// barAcc = executeGetAccount(t, fmt.Sprintf("gaiacli account %v %v", barBech, flags))
-	// assert.Equal(t, int64(20), barAcc.GetCoins().AmountOf("steak"))
-	// fooAcc = executeGetAccount(t, fmt.Sprintf("gaiacli account %v %v", fooBech, flags))
-	// assert.Equal(t, int64(30), fooAcc.GetCoins().AmountOf("steak"))
+	time.Sleep(time.Second * 1) // waiting for some blocks to pass
+	fmt.Println("wackydebugoutput TestGaiaCLISend 6")
+
+	fooAcc = executeGetAccount(t, fmt.Sprintf("gaiacli account %v %v", fooBech, flags))
+	fmt.Println("wackydebugoutput TestGaiaCLISend 7")
+	assert.Equal(t, int64(30), fooAcc.GetCoins().AmountOf("steak"))
+	fmt.Println("wackydebugoutput TestGaiaCLISend 8")
+	time.Sleep(time.Second * 3) // waiting for some blocks to pass
+	barAcc = executeGetAccount(t, fmt.Sprintf("gaiacli account %v %v", barBech, flags))
+	fmt.Println("wackydebugoutput TestGaiaCLISend 9")
+	assert.Equal(t, int64(20), barAcc.GetCoins().AmountOf("steak"))
 }
 
 func TestGaiaCLIDeclareCandidacy(t *testing.T) {
