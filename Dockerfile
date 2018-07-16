@@ -15,6 +15,7 @@ COPY . .
 
 # Install minimum necessary dependencies, build Cosmos SDK, remove packages
 RUN apk add --no-cache $PACKAGES && \
+    apk add python3 && \
     make get_tools && \
     make get_vendor_deps && \
     make build && \
